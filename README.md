@@ -1,151 +1,152 @@
-# FreightIQ – Decision-Support Prototype for Freight Rate Forecasting & Vessel Chartering
+# FreightIQ
 
-**FreightIQ** is a maritime freight decision-support prototype built for Indian bulk cargo procurement teams (coking coal and iron ore imports into India's East Coast ports: Paradip, Visakhapatnam, Kolkata/Haldia).
+## Maritime freight intelligence for faster, safer charter decisions
 
-## Stitch command-center interface
+FreightIQ is a decision-support platform for bulk-cargo procurement teams operating on India’s east coast. It combines route-specific market history, freight-rate forecasting, charter timing optimization, operational risk analysis, scenario simulation, and explainable decision reports in one workflow.
 
-From the repository root, install Python dependencies once with `python -m pip install -r requirements.txt`. Use Node.js 22 or later. Start these commands in **two terminals**:
+> SIH 2026 project by the FreightIQ team. The project progressed through our college’s institutional selection and was among the top 50 teams forwarded for the final-stage evaluation. The government-portal results are pending.
+
+![FreightIQ command center](screenshots/Home___Control_Tower.png)
+
+## What it does
+
+- Forecasts route-level freight rates with a Naive Baseline and SARIMA model path.
+- Recommends charter timing and vessel class under cargo, route, laycan, capacity, and risk constraints.
+- Simulates disruption scenarios such as freight spikes, congestion, vessel shortages, and severe weather.
+- Compares procurement policies through the Decision Twin and Strategy Arena.
+- Runs historical-style walk-forward backtests against an immediate-charter benchmark.
+- Produces explainable cost breakdowns, sensitivity analysis, audit notes, CSV views, and PDF decision reports.
+- Serves both a polished browser command center and the original Streamlit analytical workspace.
+
+## Screenshots
+
+| Decision Twin | Forecasting | Charter Workbench |
+| --- | --- | --- |
+| ![Decision Twin](screenshots/Decision_Twin.png) | ![Forecasting](screenshots/Forecasting.png) | ![Charter Optimizer](screenshots/Charter_Optimizer.png) |
+
+| Scenario Lab | Data Explorer | Operations |
+| --- | --- | --- |
+| ![Scenario Lab](screenshots/Scenario_Lab.png) | ![Data Explorer](screenshots/Data_Explorer.png) | ![Operations Overview](screenshots/Operations_Overview.png) |
+
+## Architecture
+
+```text
+Browser command center / Streamlit workspace
+                    │
+                    ▼
+             FastAPI service
+                    │
+        ┌───────────┼───────────┐
+        ▼           ▼           ▼
+   Forecasting  Optimizer   Simulations
+        │           │           │
+        └───────────┴───────────┘
+                    │
+                    ▼
+      Synthetic demo datasets + SQLite audit store
+```
+
+The browser client is served by Node.js and proxies `/api/*` requests to FastAPI. Python remains the source of truth for forecasts, optimization, scenario logic, backtesting, validation, and report generation.
+
+## Quick start
+
+### Requirements
+
+- Python 3.11 or later
+- Node.js 22 or later
+- Git
+
+### Install
 
 ```powershell
+git clone https://github.com/prajwalsamsonck/freightiq.git
+cd freightiq
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+npm ci
+Copy-Item .env.example .env
+```
+
+### Run the browser command center
+
+Open two terminals from the repository root:
+
+```powershell
+# Terminal 1
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
 ```powershell
+# Terminal 2
 npm run dev
 ```
 
-Open **http://localhost:3000**. The Node server serves the Stitch-style browser interface and proxies `/api/*` to FastAPI. The original Streamlit interface remains available with `streamlit run app/Home.py` at http://localhost:8501. Run `python -m pytest -q`, `npm test`, and `npm run build` to verify the backend, proxy and static bundle. See `docs/STITCH_ARCHITECTURE.md` for the deployment boundary and `docs/STITCH_IMPLEMENTATION_STATUS.md` for current fidelity limits.
+Open [http://localhost:3000](http://localhost:3000). API documentation is available at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-The Overview and Control Tower include an interactive [Voyage Intelligence map](docs/VOYAGE_INTELLIGENCE.md) with illustrative sea corridors and synthetic operational indicators. Run `python scripts/verify-voyage-map.py` against the local services to check its desktop, mobile, and fallback states.
+### Run the Streamlit workspace
 
-The graphs use the self-hosted Plotly library, as in the earlier interface. Hover to inspect exact values; use the visible chart toolbar to zoom, pan, reset or download a PNG. The Market chart has a date filter, and the Forecasts page can overlay up to three routes on the same axes.
-
-The [Project Phoenix decision slice](docs/PROJECT_PHOENIX.md) adds a Decision Arena with shared synthetic futures, a cost/downside frontier, counterfactual freight threshold, INR impact comparison, future replay slider, route-aware Scenario Lab, and evidence PDF. Its modeled results are for demonstration and require commercial validation.
-
----
-
-## 🚀 Quick Start & Local Development
-
-### 1. Installation
-```bash
-# Clone repository and enter directory
-cd FreightIQ
-
-# Install required dependencies
-pip install -r requirements.txt
-```
-
-### 2. Generate Demonstration Datasets
-```bash
-python -m data.generate_demo_data
-```
-
-### 3. Launch Application & Control Tower
-```bash
+```powershell
 streamlit run app/Home.py
 ```
-*Access Streamlit UI at `http://localhost:8501`*
 
-### 4. Launch FastAPI Server
-```bash
-uvicorn backend.main:app --port 8000
-```
-*Access API Docs at `http://localhost:8000/docs`*
+Open [http://localhost:8501](http://localhost:8501).
 
-### 5. Run Automated Test Suite
-```bash
-python -m pytest -v tests/
+## Verify the project
+
+```powershell
+python -m pytest -q
+npm test
+npm run build
 ```
 
----
+The test suite covers API contracts, forecasting, optimizer constraints, route isolation, scenario determinism, report generation, UI smoke rendering, and browser proxy behavior.
 
-## ⚙️ Deployment Modes & Integration Architecture
+## Configuration and data modes
 
-FreightIQ operates in two deployment modes configured via environment variables:
+The default configuration is offline and reproducible:
 
-1. **`DEMO` (Default)**: Uses synthetic, reproducible demonstration datasets (`IS_DEMO_DATA=True`). Operates 100% offline without requiring external API credentials.
-2. **`LIVE_READY`**: Evaluates configured external API connectors (Baltic freight rate indices, AIS vessel tracking, commodity prices, port congestion, weather risk). Unconfigured connectors fall back gracefully (`status = "NOT_CONFIGURED"`) without crashing the decision engine.
-
-### Environment Setup (`.env`)
-Copy `.env.example` to `.env`:
 ```env
 DATA_MODE=DEMO
 SIH_DEMO_MODE=true
-
-# Optional Live Connectors
-FREIGHT_API_URL=
-FREIGHT_API_KEY=
-
-AIS_API_URL=
-AIS_API_KEY=
-
-COMMODITY_API_URL=
-COMMODITY_API_KEY=
-
-PORT_API_URL=
-PORT_API_KEY=
-
-WEATHER_API_URL=
-WEATHER_API_KEY=
+IS_DEMO_DATA=True
 ```
 
----
+Demo data is synthetic and included only for evaluation and demonstration. Optional connector variables are documented in `.env.example`; unset connectors report their availability without breaking the application.
 
-## 📊 Data Connector Schemas
+## Project layout
 
-Every normalized connector output implements data provenance tracking (`source_name`, `source_mode`, `retrieved_at`):
-
-### Freight Rate Connector
-```json
-{
-  "timestamp": "2026-09-16",
-  "freight_rate": 26.14,
-  "bdi": 1850.0,
-  "capesize_index": 2450.0,
-  "panamax_index": 1720.0,
-  "source_name": "Freight Benchmarks API (Synthetic Demo)",
-  "source_mode": "DEMO",
-  "retrieved_at": "2026-09-16T17:33:00Z"
-}
+```text
+app/                 Streamlit pages and reusable UI components
+backend/             FastAPI service and decision engines
+config/              Model and decision parameters
+data/                Synthetic demo datasets and generators
+docs/                Architecture, verification, and project notes
+screenshots/         Curated product screenshots
+scripts/             Build and verification utilities
+tests/               Python and Node test suites
+web/                 Browser command-center client
 ```
 
-### AIS Vessel Supply Connector
-```json
-{
-  "timestamp": "2026-09-16",
-  "vessel_class": "Panamax",
-  "available_count": 25,
-  "region": "East Coast India",
-  "source_name": "AIS Vessel Tracking API (Synthetic Demo)",
-  "source_mode": "DEMO",
-  "retrieved_at": "2026-09-16T17:33:00Z"
-}
-```
+## Project documentation
 
----
+- [Project context](docs/PROJECT_CONTEXT.md)
+- [Web interface architecture](docs/WEB_INTERFACE_ARCHITECTURE.md)
+- [Feature mapping](docs/FEATURE_MAPPING.md)
+- [Implementation status](docs/IMPLEMENTATION_STATUS.md)
+- [Functional verification](docs/FUNCTIONAL_VERIFICATION.md)
+- [Voyage Intelligence map](docs/VOYAGE_INTELLIGENCE.md)
+- [Project Phoenix decision slice](docs/PROJECT_PHOENIX.md)
 
-## 🐳 Docker Deployment
+## Scope and limitations
 
-### Single Command Container Build
-```bash
-docker-compose up --build
-```
-*Streamlit UI: `http://localhost:8501`*  
-*FastAPI: `http://localhost:8000`*
+FreightIQ is a hackathon prototype and decision-support demonstrator. It is not a live chartering system, a navigation product, a financial-advice service, or a substitute for commercial data validation. Production use would require licensed market feeds, real shipment histories, contract-specific cost calibration, security hardening, and operational approval.
 
----
+## License
 
-## 🔒 Security Guidelines
+Released under the [MIT License](LICENSE).
 
-* API credentials are set via environment variables or secret managers.
-* No API keys or commercial credentials should be committed to version control.
-* Offline demo mode operates safely in isolated staging or competition environments.
+## Team
 
----
-
-## 📜 Prototype Disclosure & Disclaimers
-
-1. **Software Prototype**: FreightIQ is a software decision-support prototype system.
-2. **Demo Data**: Operates on synthetic demonstration data unless live adapters are configured.
-3. **INR Presentation**: USD benchmark shipping rates are presented in INR for Indian procurement users using a configurable demonstration conversion rate ($1 \text{ USD} = \text{₹}84.0$).
-4. **Non-Commercial**: Not a commercial charter commitment or financial advice.
+Built by the FreightIQ team for SIH 2026.

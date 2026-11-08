@@ -17,3 +17,18 @@ node_modules/
 dist/
 .netlify/
 .claude/
+
+# Local working exports and generated verification artifacts
+design/
+scratch/
+stich1/
+deliverables/
+.venv-system/
+docs/audits/
+docs/IMPLEMENTATION_SPEC.md
+docs/VISUAL_AUDIT.md
+scripts/verify-stitch-visuals.py
+backend.log
+backend.error.log
+frontend.log
+frontend.error.log

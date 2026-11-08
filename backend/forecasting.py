@@ -100,13 +100,18 @@ def forecast_naive(df: pd.DataFrame, horizon: int = 14) -> Tuple[pd.DataFrame, D
 
 
 def forecast_sarima(df: pd.DataFrame, horizon: int = 14) -> Tuple[pd.DataFrame, Dict[str, float]]:
-    """SARIMA Forecast via statsmodels."""
-    from statsmodels.tsa.statespace.sarimax import SARIMAX
+    """SARIMA Forecast via statsmodels, with a safe demo fallback.
 
+    Some locked-down Windows environments prevent native statsmodels extensions
+    from loading. Demo mode must remain usable there, so import and fitting are
+    both guarded and fall back to the deterministic naive forecast.
+    """
     series = df["freight_rate"].values
     future_dates = pd.date_range(start=df["date"].iloc[-1] + pd.Timedelta(days=1), periods=horizon, freq="D")
 
     try:
+        from statsmodels.tsa.statespace.sarimax import SARIMAX
+
         model = SARIMAX(series, order=(1, 1, 1), seasonal_order=(1, 0, 0, 7), enforce_stationarity=False, enforce_invertibility=False)
         res = model.fit(disp=False)
         

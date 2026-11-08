@@ -5,6 +5,10 @@ Verifies all 10 pages execute cleanly without runtime exceptions.
 
 import pytest
 from streamlit.testing.v1 import AppTest
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("page_file", [
@@ -24,7 +28,7 @@ def test_page_renders_without_exceptions(page_file):
     # The Streamlit backtest runs a full synthetic walk-forward simulation on
     # first render; it can exceed the general page timeout on Windows.
     timeout = 90 if page_file.endswith("8_Backtesting.py") else 30
-    at = AppTest.from_file(page_file, default_timeout=timeout)
+    at = AppTest.from_file(PROJECT_ROOT / page_file, default_timeout=timeout)
     at.run(timeout=timeout)
     assert len(at.exception) == 0, f"Exception rendered on {page_file}: {[e.value for e in at.exception]}"
 

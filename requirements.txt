@@ -14,3 +14,5 @@ reportlab>=4.0.0
 PyYAML>=6.0
 requests>=2.31
 python-multipart>=0.0.18
+httpx2>=2.16.0
+pypdf>=6.0.0

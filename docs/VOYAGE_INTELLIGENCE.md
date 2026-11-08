@@ -19,4 +19,4 @@ The footer and route overlay disclose **DEMO / SYNTHETIC**, **NOT LIVE AIS TRACK
 
 ## Verification
 
-Run `python scripts/verify-voyage-map.py` against the local web and Python services. It checks map rendering, marker details, map controls, unavailable alternatives, Gladstone route selection, mobile overflow, and missing-geometry fallback. Screenshots are saved under `design/visual-verification/implementation/`.
+Run `python scripts/verify-voyage-map.py` against the local web and Python services. It checks map rendering, marker details, map controls, unavailable alternatives, route selection, mobile overflow, and missing-geometry fallback. Verification captures are local-only and are intentionally excluded from the public repository.
